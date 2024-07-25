@@ -425,7 +425,10 @@ impl ErrorContext for Error {
     fn context<C: fmt::Display>(self, context: C) -> Self {
         let context = context.to_string();
         match self {
-            Error::WithContext { cause, .. } => Error::WithContext { context, cause },
+            Error::WithContext { context: prev_context, cause } => Error::WithContext {
+                context: format!("{context}: {prev_context}"),
+                cause,
+            },
             _ => Error::WithContext {
                 context,
                 cause: Arc::new(self),
@@ -436,7 +439,10 @@ impl ErrorContext for Error {
     fn with_context<C: fmt::Display>(self, f: impl FnOnce(&Error) -> C) -> Self {
         let context = f(&self).to_string();
         match self {
-            Error::WithContext { cause, .. } => Error::WithContext { context, cause },
+            Error::WithContext { context: prev_context, cause } => Error::WithContext {
+                context: format!("{context}: {prev_context}"),
+                cause,
+            },
             _ => Error::WithContext {
                 context,
                 cause: Arc::new(self),
